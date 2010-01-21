@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml"
+	layout="absolute" width="30" height="30"
+	paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0"
+	horizontalGap="0" verticalGap="0"
+	horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	creationComplete="creationCompleteHandler()">
+	<mx:Script>
+		<![CDATA[
+			import mx.utils.StringUtil;
+		
+			[Bindable]
+			[Embed("green-orb30.png")]
+			private var greenOrb:Class;
+			[Bindable]
+			[Embed("yellow-orb30.png")]
+			private var yellowOrb:Class;
+			[Bindable]
+			[Embed("red-orb30.png")]
+			private var redOrb:Class;
+		
+	        private var socket:XMLSocket;
+	        private var hasFilterPush:Boolean = true;
+	        
+			private function creationCompleteHandler():void {
+				ExternalInterface.addCallback("messagePush",readJavaScript);
+				ExternalInterface.addCallback("openMindsEye",connectToServer);
+				
+				socket = new XMLSocket();
+	            configureListeners(socket);
+			}
+	
+	        private function configureListeners(dispatcher:IEventDispatcher):void {
+	            dispatcher.addEventListener(Event.CLOSE, closeHandler);
+	            dispatcher.addEventListener(Event.CONNECT, connectHandler);
+	            dispatcher.addEventListener(DataEvent.DATA, dataHandler);
+	            dispatcher.addEventListener(IOErrorEvent.IO_ERROR, ioErrorHandler);
+	            dispatcher.addEventListener(ProgressEvent.PROGRESS, progressHandler);
+	            dispatcher.addEventListener(SecurityErrorEvent.SECURITY_ERROR, securityErrorHandler);
+	        }
+	
+	        private function closeHandler(event:Event):void {
+	            trace("closeHandler: " + event);
+	            btnIcon.setStyle("icon", redOrb);
+	        }
+	
+	        private function connectHandler(event:Event):void {
+	            trace("connectHandler: " + event);
+	            btnIcon.setStyle("icon", greenOrb);
+	        }
+	
+	        private function dataHandler(event:DataEvent):void {
+	            trace("dataHandler: " + event);
+	            parseData(event.data);
+	        }
+	
+	        private function ioErrorHandler(event:IOErrorEvent):void {
+	            trace("ioErrorHandler: " + event);
+	            btnIcon.setStyle("icon", yellowOrb);
+	        }
+	
+	        private function progressHandler(event:ProgressEvent):void {
+	            trace("progressHandler loaded:" + event.bytesLoaded + " total: " + event.bytesTotal);
+	        }
+	
+	        private function securityErrorHandler(event:SecurityErrorEvent):void {
+	            trace("securityErrorHandler: " + event);
+	            btnIcon.setStyle("icon", yellowOrb);
+	        }
+	        
+	        public function connectToServer(hostName:String,port:int):void {
+	            if (hostName && port) {
+	            	if (!socket.connected) {
+	                	socket.connect(hostName, port);
+	             	}
+	            }
+	        }
+        
+	        public function send(data:Object):void {
+	            socket.send(data);
+	        }
+	
+			public function readJavaScript(str:String):void {
+				//Just pass for now.
+				trace("Send: "+str);
+				if (filterPush(str)) send(str+"\r\n"); //Our server uses "readline"
+			}
+			
+			private function parseData(argument:String):void {
+				//Just pass for now.
+				if (filterPush(argument)) callJavaScript("messagePull",argument);
+			}
+			
+			//Filtered, safe to send: return true
+			private function filterPush(str:String):Boolean {
+				if (str == null) return false;
+				if (!hasFilterPush) return true;
+				str = StringUtil.trim(str);
+				if (str.length < 1) return false;
+				if (str.charAt() != '{') return false;
+				return true;
+			}
+
+            private function callJavaScript(jsFunctionName:String,argument:String):void {
+                ExternalInterface.call(jsFunctionName,argument);//We can have unlimited arguments.
+            }
+
+		]]>
+	</mx:Script>
+	<mx:Button width="30" height="30" id="btnIcon" icon="{redOrb}"/>
+</mx:Application>
