@@ -1,64 +1,36 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
- 
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en"> 
 <head> 
- 
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> 
- 
 <title></title> 
- 
-<style type="text/css" media="screen"> 
-/* Colors */
-.color-yellow {background:#f2bc00;}
-.color-red    {background:#dd0000;}
-.color-blue   {background:#148ea4;}
-.color-white  {background:#dfdfdf;}
-.color-orange {background:#f66e00;}
-.color-green  {background:#8dc100;}
-.color-purple {background:#5122B4;}
-.color-black  {background:#000;}
-/* End Colors */
-</style> 
- 
 </head> 
  
 <body> 
 
-<object type="application/x-shockwave-flash" data="SimplePush.swf" id="SimplePush" width="30" height="30" style="visibility: visible;"></object>
-<input type="button" onclick="connectToServer();" value="Connect"><br/>
+<object type="application/x-shockwave-flash" data="SimplePush.swf" id="SimplePush" width="30" height="30" style="visibility: visible;"><embed wmode="transparent"></embed></object>
+<input type="button" onclick="msgq.connectToServer();" value="Connect"><br/>
 <textarea rows="20" cols="25" id="txtConsole"></textarea><br/>
-<input type="text" id="txtSay" value="Hello">
+<input type="text" id="txtSay" value='Hello'>
 <input type="button" onclick="say();" value="Say"><br/>
 <input type="text" id="txtCommand" value='{"messageType":"SAY","jsonStr":"abc"}'>
 <input type="button" onclick="command();" value="Enter">
 
-<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/themes/dark-hive/jquery-ui.css" type="text/css" />
 <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.0/jquery.min.js"></script>
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script> 
-<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"></script>
 <script type="text/javascript" src="json2.js"></script>  
+<script type="text/javascript" src="msgqueue.js"></script>  
 <script language="JavaScript" type="text/javascript">
-    function connectToServer() {
-		var flash = document.getElementById("SimplePush");
-		flash.openMindsEye('localhost',3197); //openMindsEye() is the first argument in the flash object's ExternalInterface.addCallback
-    }
-    function messagePush(msg) {
-		var flash = document.getElementById("SimplePush");
-		flash.messagePush(msg); //messagePush() is the first argument in the flash object's ExternalInterface.addCallback
-    }
+    var msgq = new MsgQueue('SimplePush','localhost',3197);
     function messagePull(arg) {
       arg = JSON.parse(arg);
-      switch (arg.messageType) {
-        case "SAY": writeToConsole(arg.jsonStr);break;
-        default: break;
-      }
+      msgq.add(arg);
     }
+
     function writeToConsole(arg) {
       $("#txtConsole").val($("#txtConsole").val()+arg+"\r\n");
     }
     function command() {
-      messagePush($("#txtCommand").val());
+      msgq.messagePush($("#txtCommand").val());
     }
     function say() {
       var msg = {
@@ -66,7 +38,7 @@
         jsonStr:$("#txtSay").val()
       }
       var str = JSON.stringify(msg);
-      messagePush(str);
+      msgq.messagePush(str);
 		  $("#txtSay").val('');
     }
 </script>

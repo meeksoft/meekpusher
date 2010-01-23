@@ -4,6 +4,7 @@
 	paddingBottom="0" paddingLeft="0" paddingRight="0" paddingTop="0"
 	horizontalGap="0" verticalGap="0"
 	horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	backgroundAlpha="0"
 	creationComplete="creationCompleteHandler()">
 	<mx:Script>
 		<![CDATA[
